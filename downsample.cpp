@@ -163,7 +163,7 @@ void traverse(
         std::vector<size_t>& strides,
         std::unordered_map<int,size_t>& frequencies)
 {
-    std::cout << "index is : " << index << std::endl;
+   // std::cout << "index is : " << index << std::endl;
     mergeBlock(blocks[index], frequencies);
     for(size_t i = 0; i < levels_to_traverse; ++i) {
         size_t stride = strides[strides.size() - 1 - i];
@@ -285,15 +285,15 @@ std::vector<Block> downsample(
     std::vector<Block> new_blocks;
     size_t dimensions = strides.size();
     size_t index = 0;
-    std::cout << "orig_blocks size is " << orig_blocks.size() << std::endl;
+    //std::cout << "orig_blocks size is " << orig_blocks.size() << std::endl;
     while(index < orig_blocks.size()) 
     {
-        std::cout << "making block" << std::endl;
+      //  std::cout << "making block" << std::endl;
         Block b = makeBlock(orig_blocks, dimensions, index, strides);
-        std::cout << "made block" << std::endl;
+        //std::cout << "made block" << std::endl;
         new_blocks.push_back(b);
         index = getNextIndex(index, strides);
-        std::cout << "next index is : " << index << std::endl;
+        //std::cout << "next index is : " << index << std::endl;
     }
     return new_blocks;
 }
@@ -330,18 +330,18 @@ template <unsigned long N>
 std::vector<std::vector<Block> > getAllDownsamplingsConcurrent(boost::multi_array<int, N> image)
 {
     std::vector<std::vector<Block>> blocks;
-    std::cout << "flattening" << std::endl;
+    //std::cout << "flattening" << std::endl;
     std::vector<Block> prev_iter_blocks = flatten(image);
 
-    std::cout << "vectorizing" << std::endl;
+    //std::cout << "vectorizing" << std::endl;
     std::vector<size_t> strides = 
         vectorizeStrides(image.strides(), image.num_dimensions());
-    std::cout << "getting max" << std::endl;
+    //std::cout << "getting max" << std::endl;
     size_t max_downsample = getMaxPossibleDownsample(image);
-    std::cout << "max is " << max_downsample << std::endl;
+    //std::cout << "max is " << max_downsample << std::endl;
     for(size_t i = 0; i < max_downsample; ++i) 
     {
-        std::cout << "downsampling on iteration " << i << std::endl;
+      //  std::cout << "downsampling on iteration " << i << std::endl;
         prev_iter_blocks = downsampleConcurrent(prev_iter_blocks, strides,8);
         blocks.push_back(prev_iter_blocks);
         strides = getNewStrides(strides);
@@ -353,23 +353,23 @@ template <unsigned long N>
 std::vector<std::vector<Block> > getAllDownsamplings(boost::multi_array<int, N> image)
 {
     std::vector<std::vector<Block>> blocks;
-    std::cout << "flattening" << std::endl;
+    //std::cout << "flattening" << std::endl;
     std::vector<Block> prev_iter_blocks = flatten(image);
 
-    std::cout << "vectorizing" << std::endl;
+    //std::cout << "vectorizing" << std::endl;
     std::vector<size_t> strides = 
         vectorizeStrides(image.strides(), image.num_dimensions());
-    std::cout << "getting max" << std::endl;
+    //std::cout << "getting max" << std::endl;
     size_t max_downsample = getMaxPossibleDownsample(image);
-    std::cout << "max is " << max_downsample << std::endl;
+    //std::cout << "max is " << max_downsample << std::endl;
 
     for(size_t i = 0; i < max_downsample; ++i) 
     {
         for(size_t i = 0; i < strides.size(); ++i) 
         {
-            std::cout << strides[i] << std::endl;
+            //std::cout << strides[i] << std::endl;
         }
-        std::cout << "downsampling on iteration " << i << std::endl;
+        //std::cout << "downsampling on iteration " << i << std::endl;
         prev_iter_blocks = downsample(prev_iter_blocks, strides);
         blocks.push_back(prev_iter_blocks);
         strides = getNewStrides(strides);
@@ -425,7 +425,7 @@ int main(int argc, char** argv)
     A[2][0]=1;
     std::vector<std::vector<Block> > downsamplings = getAllDownsamplings(A);
     //need to check number of elements. is size correct?
-    std::cout <<  "number of elements " << A.num_elements() << std::endl;
+    //std::cout <<  "number of elements " << A.num_elements() << std::endl;
     for(size_t i = 0; i < downsamplings.size(); ++i) 
     {
         for(size_t j = 0; j < downsamplings[i].size(); ++j) 
@@ -447,7 +447,7 @@ int main(int argc, char** argv)
     B[2][0]=1;
     downsamplings = getAllDownsamplings(B);
     //need to check number of elements. is size correct?
-    std::cout <<  "number of elements " << A.num_elements() << std::endl;
+    //std::cout <<  "number of elements " << A.num_elements() << std::endl;
     for(size_t i = 0; i < downsamplings.size(); ++i) 
     {
         for(size_t j = 0; j < downsamplings[i].size(); ++j) 
@@ -464,7 +464,7 @@ int main(int argc, char** argv)
     C[0][0][0]=1;
     downsamplings = getAllDownsamplings(C);
     //need to check number of elements. is size correct?
-    std::cout <<  "number of elements " << A.num_elements() << std::endl;
+    //std::cout <<  "number of elements " << A.num_elements() << std::endl;
     for(size_t i = 0; i < downsamplings.size(); ++i) 
     {
         for(size_t j = 0; j < downsamplings[i].size(); ++j) 
@@ -481,7 +481,7 @@ int main(int argc, char** argv)
     D[0][0][0]=1;
     downsamplings = getAllDownsamplings(D);
     //need to check number of elements. is size correct?
-    std::cout <<  "number of elements " << A.num_elements() << std::endl;
+    //std::cout <<  "number of elements " << A.num_elements() << std::endl;
     for(size_t i = 0; i < downsamplings.size(); ++i) 
     {
         for(size_t j = 0; j < downsamplings[i].size(); ++j) 
