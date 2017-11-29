@@ -409,6 +409,11 @@ int main(int argc, char** argv)
     std::cout << "3 dimensional bigger square test..." << std::endl;
     boost::multi_array<int,3> D(boost::extents[4][4][4]);
     D[0][0][0]=1;
+    D[3][3][3]=1;
+    D[3][3][2]=1;
+    D[3][2][2]=1;
+    D[3][2][3]=1;
+    D[2][3][3]=1;
     downsamplings = getAllDownsamplings(D);
     for(size_t i = 0; i < downsamplings.size(); ++i) 
     {
