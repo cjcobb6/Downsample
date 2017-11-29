@@ -244,36 +244,42 @@ void populateBlocks(
         std::vector<size_t>& strides) 
 {
     size_t dimensions = strides.size();
+    //std::cout << "running populate blocks" << std::endl;
     for(size_t i = start; i < indices.size(); i += num_threads)
     {
         size_t index = indices[i];
+      //  std::cout << "index is " << index << std::endl;
         new_blocks[i] = makeBlock(old_blocks, dimensions, index, strides);
     }
 }
 
+
 std::vector<Block> downsampleConcurrent(
         std::vector<Block>& old_blocks,
         std::vector<size_t>& strides,
-        size_t num_threads=8)
+        size_t num_threads=2)
 {
     std::vector<Block> new_blocks;
     std::vector<size_t> indices = getIndexVector(strides, old_blocks.size());
+    new_blocks.resize(indices.size());
+
     std::vector<std::thread*> workers;
 
     for(size_t i = 0; i < num_threads; ++i)
     {
-        std::thread t(populateBlocks, 
+        std::thread* t = new std::thread(populateBlocks, 
                 std::ref(new_blocks),
                 i,
                 num_threads,
                 std::ref(old_blocks),
                 std::ref(indices),
                 std::ref(strides));
-        workers.push_back(&t);
+        workers.push_back(t);
     } 
     for(size_t i = 0; i < num_threads; ++i)
     {
         workers[i]->join();
+        delete workers[i];
     }
     return new_blocks;
 }
@@ -342,7 +348,7 @@ std::vector<std::vector<Block> > getAllDownsamplingsConcurrent(boost::multi_arra
     for(size_t i = 0; i < max_downsample; ++i) 
     {
       //  std::cout << "downsampling on iteration " << i << std::endl;
-        prev_iter_blocks = downsampleConcurrent(prev_iter_blocks, strides,8);
+        prev_iter_blocks = downsampleConcurrent(prev_iter_blocks, strides);
         blocks.push_back(prev_iter_blocks);
         strides = getNewStrides(strides);
     }
@@ -436,6 +442,20 @@ int main(int argc, char** argv)
      
     }
 
+    std::cout << "2 dimensional square test concurrent..." << std::endl;
+    downsamplings = getAllDownsamplingsConcurrent(A);
+    //need to check number of elements. is size correct?
+    //std::cout <<  "number of elements " << A.num_elements() << std::endl;
+    for(size_t i = 0; i < downsamplings.size(); ++i) 
+    {
+        for(size_t j = 0; j < downsamplings[i].size(); ++j) 
+        {
+            std::cout << downsamplings[i][j].val << " , ";
+        }
+        std::cout << std::endl;
+     
+    }
+
 
     std::cout << "2 dimensional rectangle test..." << std::endl;
     boost::multi_array<int,2> B(boost::extents[4][2]);
@@ -459,7 +479,22 @@ int main(int argc, char** argv)
     }
 
 
-    std::cout << "3 dimensional square test" << std::endl;
+    std::cout << "2 dimensional rectangle test concurrent..." << std::endl;
+    downsamplings = getAllDownsamplingsConcurrent(B);
+    //need to check number of elements. is size correct?
+    //std::cout <<  "number of elements " << A.num_elements() << std::endl;
+    for(size_t i = 0; i < downsamplings.size(); ++i) 
+    {
+        for(size_t j = 0; j < downsamplings[i].size(); ++j) 
+        {
+            std::cout << downsamplings[i][j].val << " , ";
+        }
+        std::cout << std::endl;
+     
+    }
+
+
+    std::cout << "3 dimensional square test..." << std::endl;
     boost::multi_array<int,3> C(boost::extents[2][2][2]);
     C[0][0][0]=1;
     downsamplings = getAllDownsamplings(C);
@@ -475,11 +510,73 @@ int main(int argc, char** argv)
      
     }
 
+    std::cout << "3 dimensional square test concurrent..." << std::endl;
+    C[0][0][0]=1;
+    downsamplings = getAllDownsamplingsConcurrent(C);
+    //need to check number of elements. is size correct?
+    //std::cout <<  "number of elements " << A.num_elements() << std::endl;
+    for(size_t i = 0; i < downsamplings.size(); ++i) 
+    {
+        for(size_t j = 0; j < downsamplings[i].size(); ++j) 
+        {
+            std::cout << downsamplings[i][j].val << " , ";
+        }
+        std::cout << std::endl;
+     
+    }
 
-    std::cout << "3 dimensional bigger square test" << std::endl;
+
+    std::cout << "3 dimensional bigger square test..." << std::endl;
     boost::multi_array<int,3> D(boost::extents[4][4][4]);
     D[0][0][0]=1;
     downsamplings = getAllDownsamplings(D);
+    //need to check number of elements. is size correct?
+    //std::cout <<  "number of elements " << A.num_elements() << std::endl;
+    for(size_t i = 0; i < downsamplings.size(); ++i) 
+    {
+        for(size_t j = 0; j < downsamplings[i].size(); ++j) 
+        {
+            std::cout << downsamplings[i][j].val << " , ";
+        }
+        std::cout << std::endl;
+    }
+
+    std::cout << "3 dimensional bigger square test concurrent..." << std::endl;
+    downsamplings = getAllDownsamplingsConcurrent(D);
+    //need to check number of elements. is size correct?
+    //std::cout <<  "number of elements " << A.num_elements() << std::endl;
+    for(size_t i = 0; i < downsamplings.size(); ++i) 
+    {
+        for(size_t j = 0; j < downsamplings[i].size(); ++j) 
+        {
+            std::cout << downsamplings[i][j].val << " , ";
+        }
+        std::cout << std::endl;
+    }
+
+
+    std::cout << "3 dimensional rectanle..." << std::endl;
+    boost::multi_array<int,3> E(boost::extents[4][4][2]);
+
+    E[0][0][0]=1;
+    E[0][0][1]=1;
+    E[0][1][0]=1;
+    E[0][1][1]=1;
+    E[1][0][0]=1;
+    downsamplings = getAllDownsamplings(E);
+    //need to check number of elements. is size correct?
+    //std::cout <<  "number of elements " << A.num_elements() << std::endl;
+    for(size_t i = 0; i < downsamplings.size(); ++i) 
+    {
+        for(size_t j = 0; j < downsamplings[i].size(); ++j) 
+        {
+            std::cout << downsamplings[i][j].val << " , ";
+        }
+        std::cout << std::endl;
+    }
+
+    std::cout << "3 dimensional rectanle concurrent..." << std::endl;
+    downsamplings = getAllDownsamplingsConcurrent(E);
     //need to check number of elements. is size correct?
     //std::cout <<  "number of elements " << A.num_elements() << std::endl;
     for(size_t i = 0; i < downsamplings.size(); ++i) 
