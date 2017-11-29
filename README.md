@@ -10,7 +10,7 @@ preserving the frequencies from the original image.
 The concurrent part of my algorithm is lock free and wait free in each
 iteration, as each thread operates entirely indendently of the other threads.
 Since we feed the previous iterations result to the next, we must wait in the
-main thread for each iteration to finish.
+main thread for each iteration to finish before starting the next.
 
 Analysis:
 
