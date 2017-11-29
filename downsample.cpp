@@ -55,8 +55,6 @@ std::vector<Block> flatten(boost::multi_array<int, N>& image)
     return blocks;
 }
 
-
-
 //merges frequencies in block into cur_frequencies. used while building block
 void mergeBlock(Block& b, std::unordered_map<int, size_t>& cur_frequencies)
 {
@@ -73,7 +71,6 @@ void mergeBlock(Block& b, std::unordered_map<int, size_t>& cur_frequencies)
                 cur_frequencies[it->first] + it->second;
         }   
     }
-
 }
 
 //given a starting block, traverse adjacent blocks and populate frequency map
@@ -144,7 +141,7 @@ size_t getNextIndex(size_t index, std::vector<size_t>& strides)
 }
 
 //gets all indices of base blocks used for downsampling
-//length of indices will be length of downsampled image
+//length of indices will be size of downsampled image
 std::vector<size_t> getIndexVector(std::vector<size_t>& strides, size_t max)
 {
     std::vector<size_t> indices;
@@ -323,6 +320,8 @@ std::vector<std::vector<int> > toInts(std::vector<std::vector<Block> >& blocks)
 
 int main(int argc, char** argv) 
 {
+    std::cout << "running tests" << std::endl;
+
     std::cout << "2 dimensional square test..." << std::endl;
     boost::multi_array<int,2> A(boost::extents[4][4]);
     A[0][0]=1;
@@ -352,7 +351,6 @@ int main(int argc, char** argv)
         std::cout << std::endl;
     }
 
-
     std::cout << "2 dimensional rectangle test..." << std::endl;
     boost::multi_array<int,2> B(boost::extents[4][2]);
     B[0][0]=1;
@@ -371,7 +369,6 @@ int main(int argc, char** argv)
         std::cout << std::endl;
     }
 
-
     std::cout << "2 dimensional rectangle test concurrent..." << std::endl;
     downsamplings = getAllDownsamplingsConcurrent(B);
     for(size_t i = 0; i < downsamplings.size(); ++i) 
@@ -382,7 +379,6 @@ int main(int argc, char** argv)
         }
         std::cout << std::endl;
     }
-
 
     std::cout << "3 dimensional square test..." << std::endl;
     boost::multi_array<int,3> C(boost::extents[2][2][2]);
@@ -410,7 +406,6 @@ int main(int argc, char** argv)
      
     }
 
-
     std::cout << "3 dimensional bigger square test..." << std::endl;
     boost::multi_array<int,3> D(boost::extents[4][4][4]);
     D[0][0][0]=1;
@@ -435,10 +430,8 @@ int main(int argc, char** argv)
         std::cout << std::endl;
     }
 
-
     std::cout << "3 dimensional rectanle..." << std::endl;
     boost::multi_array<int,3> E(boost::extents[4][4][2]);
-
     E[0][0][0]=1;
     E[0][0][1]=1;
     E[0][1][0]=1;
@@ -465,7 +458,6 @@ int main(int argc, char** argv)
         std::cout << std::endl;
     }
 
-
     std::cout << "4 dimensional concurrent" << std::endl;
     boost::multi_array<int,4> F(boost::extents[4][4][4][4]);
     downsamplings = getAllDownsamplingsConcurrent(F);
@@ -490,7 +482,5 @@ int main(int argc, char** argv)
         std::cout << std::endl;
     }
 
-    
     return 0;
-
 }

@@ -36,4 +36,4 @@ The frequencies map will use O(n) memory, but n can't be bigger than N
 The number of threads does not affect memory usage scaling, as each thread
 operates independently.
 
-
+compiled with g++ --std=c++11 -I ./zi_lib/external/include/ -pthread downsample.cpp
