@@ -2,6 +2,8 @@
 #include <iostream>
 #include <unordered_map>
 #include <thread>
+#include <algorithm>
+#include <math.h>
 typedef boost::multi_array<int, 3> array_type;
 typedef array_type::index array_index_type;
 /*
@@ -150,6 +152,7 @@ void mergeBlock(Block& b, std::unordered_map<int, size_t>& cur_frequencies)
                 cur_frequencies[it->first] + it->second;
         }   
     }
+
 }
 
 //i like this
@@ -160,7 +163,7 @@ void traverse(
         std::vector<size_t>& strides,
         std::unordered_map<int,size_t>& frequencies)
 {
-
+    std::cout << "index is : " << index << std::endl;
     mergeBlock(blocks[index], frequencies);
     for(size_t i = 0; i < levels_to_traverse; ++i) {
         size_t stride = strides[strides.size() - 1 - i];
@@ -175,9 +178,7 @@ Block makeBlock(
         std::vector<size_t>& strides)
 {
     std::unordered_map<int, size_t> frequencies;
-    std::cout << "traversing" << std::endl;
     traverse(blocks, levels_to_traverse, index, strides, frequencies);
-    std::cout << "traversed" << std::endl;
     int max_val = 0;
     int max_freq = 0;
     for(std::unordered_map<int,size_t>::iterator it = frequencies.begin(); 
@@ -199,15 +200,24 @@ Block makeBlock(
 
 size_t getNextIndex(size_t index, std::vector<size_t>& strides)
 {
-    index += 2;
-    for(size_t i = 0; i < strides.size() - 1; ++i)
+    std::vector<bool> strides_used;
+    strides_used.resize(strides.size());
+    for(size_t i = 0; i < strides.size(); ++i)
     {
-        //at end of row/column/whatever
-        if(index % strides[i] == 0) 
+        strides_used.push_back(false);
+    }
+    index += 2;
+    for(size_t iter = 0; iter < strides.size() - 1; ++iter){
+        for(size_t i = 0; i < strides.size() - 1; ++i)
         {
-            //skip next row
-            index += strides[i];
-            break;
+            //at end of row/column/whatever
+            if(index % strides[i] == 0 && !strides_used[i]) 
+            {
+                //skip next row
+                index += strides[i];
+                strides_used[i] = true;
+                break;
+            }
         }
     }
     return index;
@@ -275,14 +285,15 @@ std::vector<Block> downsample(
     std::vector<Block> new_blocks;
     size_t dimensions = strides.size();
     size_t index = 0;
+    std::cout << "orig_blocks size is " << orig_blocks.size() << std::endl;
     while(index < orig_blocks.size()) 
     {
         std::cout << "making block" << std::endl;
         Block b = makeBlock(orig_blocks, dimensions, index, strides);
+        std::cout << "made block" << std::endl;
         new_blocks.push_back(b);
         index = getNextIndex(index, strides);
-        std::cout << index << std::endl;
-
+        std::cout << "next index is : " << index << std::endl;
     }
     return new_blocks;
 }
@@ -309,7 +320,9 @@ std::vector<size_t> getNewStrides(std::vector<size_t>& strides)
     std::vector<size_t> new_strides;
     for(size_t i = 0; i < strides.size(); ++i)
     {
-        new_strides.push_back(strides[i]/2);
+        unsigned long one = 1;
+        unsigned long divisor = std::pow(2, strides.size() - i - 1);
+        new_strides.push_back(std::max(one,strides[i]/divisor));
     }
     return new_strides;
 }
@@ -349,8 +362,13 @@ std::vector<std::vector<Block> > getAllDownsamplings(boost::multi_array<int, N> 
     std::cout << "getting max" << std::endl;
     size_t max_downsample = getMaxPossibleDownsample(image);
     std::cout << "max is " << max_downsample << std::endl;
+
     for(size_t i = 0; i < max_downsample; ++i) 
     {
+        for(size_t i = 0; i < strides.size(); ++i) 
+        {
+            std::cout << strides[i] << std::endl;
+        }
         std::cout << "downsampling on iteration " << i << std::endl;
         prev_iter_blocks = downsample(prev_iter_blocks, strides);
         blocks.push_back(prev_iter_blocks);
@@ -375,29 +393,29 @@ void printImage(boost::multi_array<int, N> arr)
 }
 
 
+std::vector<std::vector<int> > toInts(std::vector<std::vector<Block> >& blocks)
+{
+    std::vector<std::vector<int> > vecs;
+    for(size_t i = 0; i < blocks.size(); ++i)
+    {
+        std::vector<int> vec;
+
+        for(size_t j = 0; j < blocks.size(); ++j)
+        {
+            vec.push_back(blocks[i][j].val);
+        }
+        vecs.push_back(vec);
+    }
+    return vecs;
+}
+
 
 int main(int argc, char** argv) 
 {
 
-/*
-    boost::multi_array<int,1> simple(boost::extents[8]);
-    simple[2] = 1;
-    simple[3] = 3;
-    simple[4] = 5;
-    simple[7] = 2;
-    std::vector<std::vector<int> > downsamplings = getDownsamplings(simple);
-    for(size_t i = 0; i < downsamplings.size(); ++i) 
-    {
-        for(size_t j = 0; j < downsamplings[i].size(); ++j) 
-        {
-            std::cout << downsamplings[i][j] << " , ";
-        }
-        std::cout << std::endl;
-     
-    }
-*/
 
-    std::cout << "*********************" << std::endl;
+
+    std::cout << "2 dimensional square test..." << std::endl;
     boost::multi_array<int,2> A(boost::extents[4][4]);
     A[0][0]=1;
     A[0][1]=1;
@@ -416,6 +434,61 @@ int main(int argc, char** argv)
         }
         std::cout << std::endl;
      
+    }
+
+
+    std::cout << "2 dimensional rectangle test..." << std::endl;
+    boost::multi_array<int,2> B(boost::extents[4][2]);
+    B[0][0]=1;
+    B[0][1]=1;
+    B[1][0]=1;
+    B[3][0]=2;
+    B[3][1]=2;
+    B[2][0]=1;
+    downsamplings = getAllDownsamplings(B);
+    //need to check number of elements. is size correct?
+    std::cout <<  "number of elements " << A.num_elements() << std::endl;
+    for(size_t i = 0; i < downsamplings.size(); ++i) 
+    {
+        for(size_t j = 0; j < downsamplings[i].size(); ++j) 
+        {
+            std::cout << downsamplings[i][j].val << " , ";
+        }
+        std::cout << std::endl;
+     
+    }
+
+
+    std::cout << "3 dimensional square test" << std::endl;
+    boost::multi_array<int,3> C(boost::extents[2][2][2]);
+    C[0][0][0]=1;
+    downsamplings = getAllDownsamplings(C);
+    //need to check number of elements. is size correct?
+    std::cout <<  "number of elements " << A.num_elements() << std::endl;
+    for(size_t i = 0; i < downsamplings.size(); ++i) 
+    {
+        for(size_t j = 0; j < downsamplings[i].size(); ++j) 
+        {
+            std::cout << downsamplings[i][j].val << " , ";
+        }
+        std::cout << std::endl;
+     
+    }
+
+
+    std::cout << "3 dimensional bigger square test" << std::endl;
+    boost::multi_array<int,3> D(boost::extents[4][4][4]);
+    D[0][0][0]=1;
+    downsamplings = getAllDownsamplings(D);
+    //need to check number of elements. is size correct?
+    std::cout <<  "number of elements " << A.num_elements() << std::endl;
+    for(size_t i = 0; i < downsamplings.size(); ++i) 
+    {
+        for(size_t j = 0; j < downsamplings[i].size(); ++j) 
+        {
+            std::cout << downsamplings[i][j].val << " , ";
+        }
+        std::cout << std::endl;
     }
     
     return 0;
