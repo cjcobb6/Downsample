@@ -4,7 +4,7 @@ My algorithm takes a boost multi array and transforms it into a flat array of
 Blocks, a class I defined. These blocks contain the integers they represent,
 as well as the frequency of characters of the blocks that were merged together
 to form said block. This allows us to pass the previous iteration's blocks
-into the next without having to start from scratch, while preserving still
+into the next without having to start from scratch, while still
 preserving the frequencies from the original image.
 
 The concurrent part of my algorithm is lock free and wait free in each
