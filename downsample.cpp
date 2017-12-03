@@ -176,7 +176,7 @@ void populateBlocks(
 }
 
 
-//return 1-downsampled image of orig_blocks
+//return 1-downsampled image of old_blocks
 std::vector<Block> downsampleConcurrent(
         std::vector<Block>& old_blocks,
         std::vector<size_t>& strides,
